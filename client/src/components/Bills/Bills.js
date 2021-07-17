@@ -8,6 +8,7 @@ import "./Bills.css";
 function Bills() {
   const [bills, updateBills] = useState();
   const [showingHours, updateShowingHours] = useState();
+  const [showingDays, updateShowingDays] = useState();
 
   useEffect(() => {
     if (!bills) {
@@ -18,6 +19,31 @@ function Bills() {
           updateBills(result.data);
         })
         .catch((err) => {});
+    } else if (!showingHours && !showingDays) {
+      let tempStateVariable = JSON.parse(
+        JSON.stringify(
+          bills.reduce((acc, elem) => {
+            if (!acc.hasOwnProperty(elem.Fecha.match(/\d{4}-\d{2}/)[0])) {
+              acc[`${elem.Fecha.match(/\d{4}-\d{2}/)[0]}`] = {};
+            }
+            acc[`${elem.Fecha.match(/\d{4}-\d{2}/)[0]}`][elem.Fecha] = [];
+            return acc;
+          }, {})
+        )
+      );
+      let otherTempStateVariable = JSON.parse(
+        JSON.stringify(tempStateVariable)
+      );
+      for (let month in tempStateVariable) {
+        for (let day in tempStateVariable[month]) {
+          tempStateVariable[month][day] = false;
+        }
+      }
+      for (let month in otherTempStateVariable) {
+        otherTempStateVariable[month] = false;
+      }
+      updateShowingHours(tempStateVariable);
+      updateShowingDays(otherTempStateVariable);
     }
   });
 
@@ -28,8 +54,14 @@ function Bills() {
     updateShowingHours(newShowingHours);
   };
 
+  const showDays = (month) => {
+    let newShowingDays = JSON.parse(JSON.stringify(showingDays));
+    newShowingDays[month] = !newShowingDays[month];
+    updateShowingDays(newShowingDays);
+  };
+
   let billsDiv = <Loading />;
-  if (bills) {
+  if (bills && showingHours) {
     let months = bills.reduce((acc, elem) => {
       if (!acc.hasOwnProperty(elem.Fecha.match(/\d{4}-\d{2}/)[0])) {
         acc[`${elem.Fecha.match(/\d{4}-\d{2}/)[0]}`] = {};
@@ -37,16 +69,6 @@ function Bills() {
       acc[`${elem.Fecha.match(/\d{4}-\d{2}/)[0]}`][elem.Fecha] = [];
       return acc;
     }, {});
-
-    if (!showingHours) {
-      let tempStateVariable = JSON.parse(JSON.stringify(months));
-      for (let month in tempStateVariable) {
-        for (let day in tempStateVariable[month]) {
-          tempStateVariable[month][day] = false;
-        }
-      }
-      updateShowingHours(tempStateVariable);
-    }
 
     bills.forEach((bill) => {
       months[`${bill.Fecha.match(/\d{4}-\d{2}/)[0]}`][bill.Fecha].push(bill);
@@ -57,53 +79,63 @@ function Bills() {
         {Object.keys(months).map((month) => {
           return (
             <div id="bill" key={month}>
-              <h2>{month}</h2>
-              <div className="table" id="main-table">
-                <div className="table-row">
-                  <div className="table-head">Day</div>
-                </div>
-                {Object.keys(months[month]).map((day, i) => {
-                  return (
-                    <React.Fragment key={day}>
-                      <div className="table-row">
-                        <div
-                          className="table-cell day"
-                          onClick={() => showHours(day)}
-                        >
-                          {day}
-                        </div>
-                      </div>
-                      {Object.keys(months[month][day]).map((hour) => {
-                        console.log(day);
-                        return showingHours[day.match(/\d{4}-\d{2}/)[0]][
-                          day
-                        ] ? (
-                          <div className={`table hours`} key={hour}>
-                            <div className="table-row">
-                              <div className="table-head">Hour</div>
-                              <div className="table-head">Consumption</div>
-                              <div className="table-head">Price</div>
-                              <div className="table-head">Cost per hour</div>
-                            </div>
-                            <div className="table-row">
-                              <div className="table-cell">{hour}</div>
-                              <div className="table-cell">
-                                {months[month][day][hour]["Consumo (Wh)"]}
-                              </div>
-                              <div className="table-cell">
-                                {months[month][day][hour]["Precio (€/kWh)"]}
-                              </div>
-                              <div className="table-cell">
-                                {months[month][day][hour]["Coste por hora (€)"]}
-                              </div>
+              <h2>
+                <span onClick={() => showDays(month)}>{month}</span>
+              </h2>
+              {showingDays[month] ? (
+                <div className="table month">
+                  <div className="table-row"></div>
+                  {Object.keys(months[month])
+                    .sort((a, b) => b.localeCompare(a))
+                    .map((day, i) => {
+                      return (
+                        <React.Fragment key={day}>
+                          <div className="table-row">
+                            <div className="table-cell day">
+                              <strong onClick={() => showHours(day)}>
+                                {day}
+                              </strong>
                             </div>
                           </div>
-                        ) : null;
-                      })}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
+                          {showingHours[day.match(/\d{4}-\d{2}/)[0]][day] ? (
+                            <div className={`table hours`}>
+                              <div className="table-row">
+                                <div className="table-head">Hour</div>
+                                <div className="table-head">Consumption</div>
+                                <div className="table-head">Price</div>
+                                <div className="table-head">Cost per hour</div>
+                              </div>
+                              {Object.keys(months[month][day]).map((hour) => {
+                                return (
+                                  <div className="table-row" key={hour}>
+                                    <div className="table-cell">{hour}</div>
+                                    <div className="table-cell">
+                                      {months[month][day][hour]["Consumo (Wh)"]}
+                                    </div>
+                                    <div className="table-cell">
+                                      {
+                                        months[month][day][hour][
+                                          "Precio (€/kWh)"
+                                        ]
+                                      }
+                                    </div>
+                                    <div className="table-cell">
+                                      {
+                                        months[month][day][hour][
+                                          "Coste por hora (€)"
+                                        ]
+                                      }
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : null}
+                        </React.Fragment>
+                      );
+                    })}
+                </div>
+              ) : null}
             </div>
           );
         })}
@@ -112,7 +144,7 @@ function Bills() {
   }
   return (
     <div>
-      <h1>Electricity Bill</h1>
+      <h1>Electric Bill</h1>
       {billsDiv}
     </div>
   );
