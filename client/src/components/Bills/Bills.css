@@ -40,25 +40,17 @@
           align-items: flex-start;
 }
 
-.month {
-  width: 50%;
-}
-
 #edit {
   color: blue;
   cursor: pointer;
 }
 
-#delete {
-  color: red;
+#submit {
+  color: #02b302;
   cursor: pointer;
 }
 
-input[id="consumption"] {
-  width: 50px;
-}
-
-input[id="price"] {
-  width: 110px;
+#edit-cell {
+  width: 100px;
 }
 /*# sourceMappingURL=Bills.css.map */

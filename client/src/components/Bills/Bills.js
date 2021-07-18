@@ -16,10 +16,11 @@ function Bills() {
       axios
         .get(`${config.API_URL}/api/bills`)
         .then((result) => {
-          console.log(result);
           updateBills(result.data);
         })
-        .catch((err) => {});
+        .catch((err) => {
+          console.log(err);
+        });
     } else if (!showingHours && !showingDays && !editting) {
       let tempStateVariable = JSON.parse(
         JSON.stringify(
@@ -87,9 +88,7 @@ function Bills() {
         price: bill["Precio (€/kWh)"],
         cost: bill["Coste por hora (€)"],
       })
-      .then((result) => {
-        console.log(result);
-      })
+      .then((result) => {})
       .catch((err) => {
         console.log(err);
       });
@@ -233,7 +232,7 @@ function Bills() {
                                         ]
                                       }
                                     </div>
-                                    <div className="table-cell">
+                                    <div className="table-cell" id="edit-cell">
                                       {editting[month][day][+hour] ? (
                                         <strong
                                           onClick={() => {
@@ -244,6 +243,7 @@ function Bills() {
                                               hour
                                             );
                                           }}
+                                          id="submit"
                                         >
                                           Submit
                                         </strong>

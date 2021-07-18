@@ -5,17 +5,9 @@ router.get("/", (req, res, next) => {
   res.json("All good in here");
 });
 
-/* Create new bill */
-router.post("/newbill", (req, res, next) => {
-  Bills.create({})
-    .then(() => {})
-    .catch(() => {});
-});
-
 /* Edit bill */
 router.patch("/editbill/:id", (req, res, next) => {
   let { price, consumption, cost } = req.body;
-  console.log(req.body);
   Bills.findByIdAndUpdate(
     req.params.id,
     {
@@ -28,7 +20,6 @@ router.patch("/editbill/:id", (req, res, next) => {
     { new: true }
   )
     .then((response) => {
-      console.log(response, "this is the response");
       res.status(200).json(response);
     })
     .catch((err) => {
@@ -44,7 +35,7 @@ router.get("/bills", (req, res, next) => {
       res.json(response);
     })
     .catch((err) => {
-      res.status(500).send("Something went wrong!");
+      res.status(500).json(err);
     });
 });
 
